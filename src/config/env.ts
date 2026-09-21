@@ -37,9 +37,14 @@ export const env = {
   ADMIN_PASSWORD: optional("ADMIN_PASSWORD", ""),
   ADMIN_NAME: optional("ADMIN_NAME", "Administración"),
   RESEND_API_KEY: optional("RESEND_API_KEY", ""),
-  RESEND_FROM_EMAIL: optional("RESEND_FROM_EMAIL", "Landing Construmia <onboarding@resend.dev>"),
+  RESEND_FROM_EMAIL: optional("RESEND_FROM_EMAIL", "Construmia <team@construmia.com>"),
   CLOUDINARY_CLOUD_NAME: optional("CLOUDINARY_CLOUD_NAME", ""),
   CLOUDINARY_API_KEY: optional("CLOUDINARY_API_KEY", ""),
   CLOUDINARY_API_SECRET: optional("CLOUDINARY_API_SECRET", ""),
+  PAYPHONE_TOKEN: optional("PAYPHONE_TOKEN", ""),
+  PAYPHONE_STORE_ID: optional("PAYPHONE_STORE_ID", ""),
+  // Webhook único del CRM: recibe contacto, cualificación y pago con el campo `stage`.
+  LEAD_WEBHOOK_URL: optional("LEAD_WEBHOOK_URL", ""),
+  LEAD_NOTIFY_EMAIL: optional("LEAD_NOTIFY_EMAIL", "team@construmia.com"),
   CRON_SECRET: optional("CRON_SECRET", ""),
 } as const;
