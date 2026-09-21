@@ -19,6 +19,7 @@ const contacto: WebhookLead = {
   startTimeframe: "1-3-meses",
   commitment: true,
   qualified: null,
+  qualification: { projectType: "ampliacion" },
   createdAt: new Date(),
   pageUrl: "https://construmia.com/?prueba=1",
   utm: { source: "prueba", medium: "script", campaign: "test-webhook", content: "", term: "" },
