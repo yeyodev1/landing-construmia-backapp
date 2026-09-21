@@ -158,13 +158,15 @@ function buildNotes(
   if (timeframe) parts.push(`Quiere arrancar: ${timeframe.toLowerCase()} (urgencia ${urgency}).`);
   parts.push("Aceptó el compromiso de continuar con el proceso.");
 
-  if (q.projectType) {
-    parts.push(
-      `Proyecto: ${label(PROJECT_TYPES, q.projectType)}. Inversión: ${label(BUDGETS, q.budget)}. ` +
-        `Propiedad: ${label(PROPERTY_STATUSES, q.propertyStatus).toLowerCase()}. ` +
-        `Ubicación: ${label(LOCATIONS, q.location)}. Decisión: ${label(DECISION_MAKERS, q.decisionMaker).toLowerCase()}.`,
-    );
-  }
+  // El tipo de proyecto llega en el registro; el resto, en la cualificación.
+  const details = [
+    q.projectType && `Proyecto: ${label(PROJECT_TYPES, q.projectType)}.`,
+    q.budget && `Inversión: ${label(BUDGETS, q.budget)}.`,
+    q.propertyStatus && `Propiedad: ${label(PROPERTY_STATUSES, q.propertyStatus).toLowerCase()}.`,
+    q.location && `Ubicación: ${label(LOCATIONS, q.location)}.`,
+    q.decisionMaker && `Decisión: ${label(DECISION_MAKERS, q.decisionMaker).toLowerCase()}.`,
+  ].filter(Boolean);
+  if (details.length) parts.push(details.join(" "));
 
   if (metrics.landingSeconds) {
     parts.push(`Tiempo en la landing antes de registrarse: ${formatDuration(metrics.landingSeconds)}.`);
