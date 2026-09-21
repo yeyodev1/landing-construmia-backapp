@@ -24,6 +24,8 @@ export interface PublicLead {
   lastName: string;
   email: string;
   phoneE164: string;
+  /** Se pregunta al registrarse: la cualificación ya no la repite. */
+  projectType: string;
   stage: ILead["stage"];
   qualified: boolean | null;
   paid: boolean;
@@ -43,6 +45,7 @@ export function toPublic(lead: ILead): PublicLead {
     lastName: lead.lastName,
     email: lead.email,
     phoneE164: lead.phoneE164,
+    projectType: lead.qualification?.projectType ?? "",
     stage: lead.stage,
     qualified: lead.qualified ?? null,
     paid: lead.payment?.status === "paid",
@@ -137,6 +140,12 @@ function validateContact(body: Record<string, unknown>) {
     throw new CustomError("Elige cuándo quieres arrancar tu proyecto", 400);
   }
 
+  // Se pide primero en el registro; es opcional para no romper formularios viejos.
+  const projectType = str(body.projectType);
+  if (projectType && !hasOption(PROJECT_TYPES, projectType)) {
+    throw new CustomError("Elige el tipo de proyecto", 400);
+  }
+
   if (body.commitment !== true) {
     throw new CustomError(
       "Para continuar necesitas aceptar el compromiso: este proceso es para quien va en serio con su proyecto",
@@ -154,6 +163,7 @@ function validateContact(body: Record<string, unknown>) {
     phoneE164: `${phoneDial}${phone}`,
     startTimeframe,
     commitment: true,
+    projectType,
   };
 }
 
@@ -167,7 +177,9 @@ export async function createOrUpdate(
   const pageUrl = str(input.pageUrl).slice(0, 500);
   const meta = cleanMeta(input.meta);
 
-  const set: Record<string, unknown> = { ...contact };
+  const { projectType, ...contactFields } = contact;
+  const set: Record<string, unknown> = { ...contactFields };
+  if (projectType) set["qualification.projectType"] = projectType;
   if (meta.seconds) set["metrics.landingSeconds"] = meta.seconds;
   if (meta.device) set["metrics.device"] = meta.device;
   // Al volver a registrarse no se pierde la atribución original si ahora llega sin UTM.
