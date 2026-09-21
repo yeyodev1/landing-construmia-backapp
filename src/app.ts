@@ -11,6 +11,7 @@ const whitelist = [
   "http://127.0.0.1:5173",
   "http://localhost:8100",
   "http://localhost:8101",
+  "https://mkt.construmia.com",
   "https://construmia.com",
   "https://www.construmia.com",
   ...env.CORS_ORIGINS,
