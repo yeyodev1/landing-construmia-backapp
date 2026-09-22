@@ -1,3 +1,4 @@
+import { CountryCode, parsePhoneNumberFromString } from "libphonenumber-js/mobile";
 import { isValidObjectId } from "mongoose";
 import {
   BUDGETS,
@@ -114,25 +115,22 @@ function validateContact(body: Record<string, unknown>) {
     throw new CustomError("Escribe un correo válido", 400);
   }
 
-  const phoneDial = str(body.phoneDial);
-  if (!/^\+\d{1,4}$/.test(phoneDial)) {
-    throw new CustomError("Elige el país de tu teléfono", 400);
-  }
-
   const phoneCountry = str(body.phoneCountry).toUpperCase();
   if (!/^[A-Z]{2}$/.test(phoneCountry)) {
     throw new CustomError("Elige el país de tu teléfono", 400);
   }
 
-  // Se acepta con espacios o guiones, pero letras u otros símbolos no son un teléfono.
+  // Se acepta con espacios, guiones o el + del prefijo; letras u otros símbolos no son un teléfono.
   const rawPhone = str(body.phone);
-  if (!/^[\d\s().-]+$/.test(rawPhone)) {
+  if (!/^\+?[\d\s().-]+$/.test(rawPhone)) {
     throw new CustomError("Escribe tu teléfono solo con números", 400);
   }
-  // El 0 inicial es el prefijo de marcado local: no forma parte del número internacional.
-  const phone = rawPhone.replace(/\D/g, "").replace(/^0+/, "");
-  if (phone.length < 7 || phone.length > 12) {
-    throw new CustomError("Revisa tu teléfono: debe tener entre 7 y 12 dígitos", 400);
+  // "0995254965", "995254965", "593995254965" y "+593 99 525 4965" son el mismo número.
+  // La metadata "mobile" solo da por válido un celular que exista en el plan de
+  // numeración del país: es el que sirve para WhatsApp.
+  const parsed = parsePhoneNumberFromString(rawPhone, phoneCountry as CountryCode);
+  if (!parsed?.isValid() || !parsed.country) {
+    throw new CustomError("Revisa tu teléfono: escribe un celular válido con WhatsApp", 400);
   }
 
   const startTimeframe = str(body.startTimeframe);
@@ -157,10 +155,11 @@ function validateContact(body: Record<string, unknown>) {
     firstName,
     lastName,
     email,
-    phoneCountry,
-    phoneDial,
-    phone,
-    phoneE164: `${phoneDial}${phone}`,
+    // El país sale del número: si escribió "+34…" con Ecuador elegido, manda el número.
+    phoneCountry: parsed.country,
+    phoneDial: `+${parsed.countryCallingCode}`,
+    phone: String(parsed.nationalNumber),
+    phoneE164: String(parsed.number),
     startTimeframe,
     commitment: true,
     projectType,
