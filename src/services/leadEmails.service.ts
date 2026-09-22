@@ -24,6 +24,12 @@ const EMAIL_TIMEOUT_MS = 6000;
 
 export type TeamNotice = "nuevo" | "cualificacion" | "pago" | "transferencia";
 
+/** Además de LEAD_NOTIFY_EMAIL, estos reciben su propia copia de registros y cualificaciones. */
+const EXTRA_NOTIFY: Partial<Record<TeamNotice, string[]>> = {
+  nuevo: ["Miguelcoronelcastello@gmail.com", "Nighell.cs@gmail.com"],
+  cualificacion: ["Miguelcoronelcastello@gmail.com", "Nighell.cs@gmail.com"],
+};
+
 /** Los nombres vienen de un formulario público: nunca entran crudos al HTML. */
 function esc(value: unknown): string {
   return String(value ?? "")
@@ -166,8 +172,8 @@ function qualifiedLabel(lead: ILead): string {
   return "";
 }
 
-/** Aviso interno a LEAD_NOTIFY_EMAIL. */
-export function notifyTeam(lead: ILead, kind: TeamNotice): Promise<boolean> {
+/** Aviso interno a LEAD_NOTIFY_EMAIL (y a EXTRA_NOTIFY según el tipo). */
+export async function notifyTeam(lead: ILead, kind: TeamNotice): Promise<boolean> {
   const fullName = `${lead.firstName} ${lead.lastName}`.trim();
   const q = lead.qualification;
   const paid = lead.payment.status === "paid" || lead.payment.status === "pending_review";
@@ -217,5 +223,9 @@ export function notifyTeam(lead: ILead, kind: TeamNotice): Promise<boolean> {
     ].join(""),
   );
 
-  return deliver(env.LEAD_NOTIFY_EMAIL, `${NOTICE_TITLES[kind]}: ${fullName}`, html);
+  const subject = `${NOTICE_TITLES[kind]}: ${fullName}`;
+  const recipients = [env.LEAD_NOTIFY_EMAIL, ...(EXTRA_NOTIFY[kind] ?? [])];
+  // Un envío por destinatario: nadie ve el correo de los demás y un rebote no tumba al resto.
+  const results = await Promise.all(recipients.map((to) => deliver(to, subject, html)));
+  return results[0];
 }
