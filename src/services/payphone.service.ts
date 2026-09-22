@@ -26,7 +26,7 @@ export function isPayphoneConfigured(): boolean {
 
 /**
  * Confirma una transacción de la Cajita. Payphone reversa el cobro si esto no
- * ocurre en los primeros 5 minutos, por eso se llama apenas carga /pago/respuesta.
+ * ocurre en los primeros 5 minutos, por eso se llama apenas carga /pay-response.
  */
 export async function confirmTransaction(
   id: number,

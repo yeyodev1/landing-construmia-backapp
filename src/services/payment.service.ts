@@ -137,7 +137,7 @@ async function publicLeadOf(leadId: unknown): Promise<PublicLead | null> {
   return lead ? toPublic(lead) : null;
 }
 
-/** POST /payments/confirm — idempotente: recargar /pago/respuesta no duplica nada. */
+/** POST /payments/confirm — idempotente: recargar /pay-response no duplica nada. */
 export async function confirm(
   id: unknown,
   clientTransactionId: unknown,
