@@ -121,7 +121,12 @@ function slug(value: string): string {
 }
 
 /** Etiquetas en kebab-case: el CRM las usa para segmentar y disparar automatizaciones. */
-function buildTags(lead: WebhookLead, stage: LeadStage, urgency: string, paymentStatus: string): string {
+function buildTags(
+  lead: WebhookLead,
+  stage: LeadStage,
+  urgency: string,
+  paymentStatus: string,
+): string {
   const q = lead.qualification ?? {};
   const tags = ["construmia-landing", `etapa-${stage}`];
   if (lead.startTimeframe) tags.push(`arranque-${lead.startTimeframe}`);
@@ -139,7 +144,10 @@ function buildTags(lead: WebhookLead, stage: LeadStage, urgency: string, payment
   return tags.join(", ");
 }
 
-/** Resumen legible para el campo de notas del contacto en el CRM. */
+/**
+ * Resumen legible para el campo de notas del contacto en el CRM. Va por bloques
+ * separados por una línea en blanco y con emojis: el asesor lo lee de un vistazo.
+ */
 function buildNotes(
   lead: WebhookLead,
   stage: LeadStage,
@@ -148,42 +156,58 @@ function buildNotes(
 ): string {
   const q = lead.qualification ?? {};
   const metrics = lead.metrics ?? {};
-  const parts: string[] = [];
+  const blocks: string[][] = [];
 
   const verdict =
-    lead.qualified === true ? "CALIFICA." : lead.qualified === false ? "NO CALIFICA." : "";
-  parts.push(`${verdict} Registro desde la landing de Construmia.`.trim());
+    lead.qualified === true ? "✅ CALIFICA" : lead.qualified === false ? "❌ NO CALIFICA" : "";
+  blocks.push([verdict, "📝 Registro desde la landing de Construmia."].filter(Boolean));
 
+  const intent: string[] = [];
   const timeframe = label(START_TIMEFRAMES, lead.startTimeframe);
-  if (timeframe) parts.push(`Quiere arrancar: ${timeframe.toLowerCase()} (urgencia ${urgency}).`);
-  parts.push("Aceptó el compromiso de continuar con el proceso.");
+  if (timeframe)
+    intent.push(`🗓️ Quiere arrancar: ${timeframe.toLowerCase()} (urgencia ${urgency}).`);
+  intent.push("🤝 Aceptó el compromiso de continuar con el proceso.");
+  blocks.push(intent);
 
   // El tipo de proyecto llega en el registro; el resto, en la cualificación.
   const details = [
-    q.projectType && `Proyecto: ${label(PROJECT_TYPES, q.projectType)}.`,
-    q.budget && `Inversión: ${label(BUDGETS, q.budget)}.`,
-    q.propertyStatus && `Propiedad: ${label(PROPERTY_STATUSES, q.propertyStatus).toLowerCase()}.`,
-    q.location && `Ubicación: ${label(LOCATIONS, q.location)}.`,
-    q.decisionMaker && `Decisión: ${label(DECISION_MAKERS, q.decisionMaker).toLowerCase()}.`,
-  ].filter(Boolean);
-  if (details.length) parts.push(details.join(" "));
+    q.projectType && `🏗️ Proyecto: ${label(PROJECT_TYPES, q.projectType)}`,
+    q.budget && `💰 Inversión: ${label(BUDGETS, q.budget)}`,
+    q.propertyStatus && `🏠 Propiedad: ${label(PROPERTY_STATUSES, q.propertyStatus).toLowerCase()}`,
+    q.location && `📍 Ubicación: ${label(LOCATIONS, q.location)}`,
+    q.decisionMaker && `👥 Decisión: ${label(DECISION_MAKERS, q.decisionMaker).toLowerCase()}`,
+  ].filter((line): line is string => Boolean(line));
+  if (details.length) blocks.push(details);
 
+  const behavior: string[] = [];
   if (metrics.landingSeconds) {
-    parts.push(`Tiempo en la landing antes de registrarse: ${formatDuration(metrics.landingSeconds)}.`);
+    behavior.push(
+      `⏱️ Tiempo en la landing antes de registrarse: ${formatDuration(metrics.landingSeconds)}`,
+    );
   }
   if (metrics.videoPageSeconds) {
-    parts.push(`Tiempo en la página del video: ${formatDuration(metrics.videoPageSeconds)}.`);
+    behavior.push(`🎬 Tiempo en la página del video: ${formatDuration(metrics.videoPageSeconds)}`);
   }
-  if (metrics.device) parts.push(`Dispositivo: ${metrics.device === "mobile" ? "celular" : "computadora"}.`);
+  if (metrics.device) {
+    behavior.push(
+      metrics.device === "mobile" ? "📱 Dispositivo: celular" : "💻 Dispositivo: computadora",
+    );
+  }
+  if (behavior.length) blocks.push(behavior);
 
-  if (paymentStatus === "pagado") parts.push("PAGÓ la visita técnica ($50) con tarjeta: agendar de inmediato.");
+  const payment: string[] = [];
+  if (paymentStatus === "pagado") {
+    payment.push("💳 PAGÓ la visita técnica ($50) con tarjeta: agendar de inmediato.");
+  }
   if (paymentStatus === "por_validar") {
     const bank = lead.payment?.bank ? ` a ${lead.payment.bank}` : "";
-    parts.push(`Reportó transferencia${bank} por la visita técnica: validar el comprobante.`);
+    payment.push(`🏦 Reportó transferencia${bank} por la visita técnica: validar el comprobante.`);
   }
-  if (stage === "pago" && lead.qualified == null) parts.push("Tomó la vía rápida sin cualificar.");
+  if (stage === "pago" && lead.qualified == null)
+    payment.push("⚡ Tomó la vía rápida sin cualificar.");
+  if (payment.length) blocks.push(payment);
 
-  return parts.join(" ");
+  return blocks.map((lines) => lines.join("\n")).join("\n\n");
 }
 
 function paymentStatusLabel(status: string | undefined): string {
