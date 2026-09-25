@@ -3,7 +3,7 @@ import { env } from "../config/env";
 import {
   BUDGETS,
   DECISION_MAKERS,
-  LOCATIONS,
+  LOCATION_LABELS,
   PROJECT_STAGES,
   PROJECT_TYPES,
   PROPERTY_STATUSES,
@@ -182,7 +182,7 @@ function buildNotes(
     q.serviceNeeded && `🧭 Busca: ${label(SERVICES_NEEDED, q.serviceNeeded).toLowerCase()}`,
     q.budget && `💰 Inversión: ${label(BUDGETS, q.budget)}`,
     q.propertyStatus && `🏠 Propiedad: ${label(PROPERTY_STATUSES, q.propertyStatus).toLowerCase()}`,
-    q.location && `📍 Ubicación: ${label(LOCATIONS, q.location)}`,
+    q.location && `📍 Ubicación: ${label(LOCATION_LABELS, q.location)}`,
     q.decisionMaker && `👥 Decisión: ${label(DECISION_MAKERS, q.decisionMaker).toLowerCase()}`,
   ].filter((line): line is string => Boolean(line));
   if (details.length) blocks.push(details);
@@ -271,7 +271,7 @@ export function buildPayload(
     property_status: q.propertyStatus ?? "",
     property_status_label: label(PROPERTY_STATUSES, q.propertyStatus),
     location: q.location ?? "",
-    location_label: label(LOCATIONS, q.location),
+    location_label: label(LOCATION_LABELS, q.location),
     decision_maker: q.decisionMaker ?? "",
     decision_maker_label: label(DECISION_MAKERS, q.decisionMaker),
     qualified: lead.qualified === true ? "si" : lead.qualified === false ? "no" : "",

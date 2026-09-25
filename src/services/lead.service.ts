@@ -3,6 +3,7 @@ import { isValidObjectId } from "mongoose";
 import {
   BUDGETS,
   DECISION_MAKERS,
+  LOCATION_LABELS,
   LOCATIONS,
   PROJECT_STAGES,
   PROJECT_TYPES,
@@ -339,7 +340,7 @@ async function recentItems(): Promise<RecentActivity[]> {
     .slice(0, RECENT_MAX)
     .map(({ lead, activity }) => ({
       firstName: capitalizeFirstName(lead.firstName),
-      location: LOCATIONS[lead.qualification?.location as keyof typeof LOCATIONS] ?? "",
+      location: LOCATION_LABELS[lead.qualification?.location ?? ""] ?? "",
       action: activity.action,
       at: activity.at.toISOString(),
     }));

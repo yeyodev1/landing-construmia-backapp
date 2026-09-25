@@ -49,12 +49,19 @@ export const PROPERTY_STATUSES = {
 
 export const LOCATIONS = {
   guayaquil: "Guayaquil",
+  quito: "Quito",
+  cuenca: "Cuenca",
+  otra: "Otras ciudades",
+} as const;
+
+/** Ya no se ofrecen, pero hay leads guardados con ellas: el CRM y los correos las siguen nombrando. */
+export const LOCATION_LABELS: Record<string, string> = {
+  ...LOCATIONS,
   samborondon: "Samborondón",
   "via-a-la-costa": "Vía a la Costa",
   "daule-aurora": "Daule / La Aurora",
   "salinas-peninsula": "Salinas / Península",
-  otra: "Otra ciudad",
-} as const;
+};
 
 export const DECISION_MAKERS = {
   yo: "Yo decido",

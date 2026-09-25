@@ -2,7 +2,7 @@ import { env } from "../config/env";
 import {
   BUDGETS,
   DECISION_MAKERS,
-  LOCATIONS,
+  LOCATION_LABELS,
   PROJECT_STAGES,
   PROJECT_TYPES,
   PROPERTY_STATUSES,
@@ -212,7 +212,7 @@ export async function notifyTeam(lead: ILead, kind: TeamNotice): Promise<boolean
         ["Qué busca", label(SERVICES_NEEDED, q.serviceNeeded)],
         ["Presupuesto", label(BUDGETS, q.budget)],
         ["Propiedad", label(PROPERTY_STATUSES, q.propertyStatus)],
-        ["Ubicación", label(LOCATIONS, q.location)],
+        ["Ubicación", label(LOCATION_LABELS, q.location)],
         ["Quién decide", label(DECISION_MAKERS, q.decisionMaker)],
         ["Método de pago", paid ? lead.payment.method : ""],
         ["Banco", paid ? lead.payment.bank : ""],
