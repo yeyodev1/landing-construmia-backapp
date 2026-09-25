@@ -31,6 +31,8 @@ const cualificacion: WebhookLead = {
   qualified: true,
   qualification: {
     projectType: "remodelacion-integral",
+    projectStage: "en-curso",
+    serviceNeeded: "supervision",
     budget: "30k-60k",
     propertyStatus: "propia",
     location: "guayaquil",

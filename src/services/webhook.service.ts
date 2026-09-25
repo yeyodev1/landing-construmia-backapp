@@ -4,8 +4,10 @@ import {
   BUDGETS,
   DECISION_MAKERS,
   LOCATIONS,
+  PROJECT_STAGES,
   PROJECT_TYPES,
   PROPERTY_STATUSES,
+  SERVICES_NEEDED,
   START_TIMEFRAMES,
 } from "../config/leadOptions";
 import { ILead, Lead, LeadStage } from "../models/lead.model";
@@ -57,6 +59,10 @@ export interface LeadWebhookPayload {
   created_at: string;
   project_type: string;
   project_type_label: string;
+  project_stage: string;
+  project_stage_label: string;
+  service_needed: string;
+  service_needed_label: string;
   budget: string;
   budget_label: string;
   property_status: string;
@@ -172,6 +178,8 @@ function buildNotes(
   // El tipo de proyecto llega en el registro; el resto, en la cualificación.
   const details = [
     q.projectType && `🏗️ Proyecto: ${label(PROJECT_TYPES, q.projectType)}`,
+    q.projectStage && `🚧 Etapa: ${label(PROJECT_STAGES, q.projectStage).toLowerCase()}`,
+    q.serviceNeeded && `🧭 Busca: ${label(SERVICES_NEEDED, q.serviceNeeded).toLowerCase()}`,
     q.budget && `💰 Inversión: ${label(BUDGETS, q.budget)}`,
     q.propertyStatus && `🏠 Propiedad: ${label(PROPERTY_STATUSES, q.propertyStatus).toLowerCase()}`,
     q.location && `📍 Ubicación: ${label(LOCATIONS, q.location)}`,
@@ -254,6 +262,10 @@ export function buildPayload(
     created_at: (lead.createdAt ?? new Date()).toISOString(),
     project_type: q.projectType ?? "",
     project_type_label: label(PROJECT_TYPES, q.projectType),
+    project_stage: q.projectStage ?? "",
+    project_stage_label: label(PROJECT_STAGES, q.projectStage),
+    service_needed: q.serviceNeeded ?? "",
+    service_needed_label: label(SERVICES_NEEDED, q.serviceNeeded),
     budget: q.budget ?? "",
     budget_label: label(BUDGETS, q.budget),
     property_status: q.propertyStatus ?? "",

@@ -4,9 +4,11 @@ import {
   BUDGETS,
   DECISION_MAKERS,
   LOCATIONS,
+  PROJECT_STAGES,
   PROJECT_TYPES,
   PROPERTY_STATUSES,
   QUALIFYING_BUDGETS,
+  SERVICES_NEEDED,
   START_TIMEFRAMES,
 } from "../config/leadOptions";
 import { CustomError } from "../errors/customError.error";
@@ -144,6 +146,17 @@ function validateContact(body: Record<string, unknown>) {
     throw new CustomError("Elige el tipo de proyecto", 400);
   }
 
+  // Opcionales como el tipo de proyecto: un formulario viejo en caché no se rompe.
+  const projectStage = str(body.projectStage);
+  if (projectStage && !hasOption(PROJECT_STAGES, projectStage)) {
+    throw new CustomError("Indica si el proyecto es nuevo o está en curso", 400);
+  }
+  // El servicio solo se pregunta si la obra ya arrancó.
+  const serviceNeeded = projectStage === "en-curso" ? str(body.serviceNeeded) : "";
+  if (projectStage === "en-curso" && !hasOption(SERVICES_NEEDED, serviceNeeded)) {
+    throw new CustomError("Elige qué quieres con tu proyecto", 400);
+  }
+
   if (body.commitment !== true) {
     throw new CustomError(
       "Para continuar necesitas aceptar el compromiso: este proceso es para quien va en serio con su proyecto",
@@ -163,6 +176,8 @@ function validateContact(body: Record<string, unknown>) {
     startTimeframe,
     commitment: true,
     projectType,
+    projectStage,
+    serviceNeeded,
   };
 }
 
@@ -176,9 +191,13 @@ export async function createOrUpdate(
   const pageUrl = str(input.pageUrl).slice(0, 500);
   const meta = cleanMeta(input.meta);
 
-  const { projectType, ...contactFields } = contact;
+  const { projectType, projectStage, serviceNeeded, ...contactFields } = contact;
   const set: Record<string, unknown> = { ...contactFields };
   if (projectType) set["qualification.projectType"] = projectType;
+  if (projectStage) {
+    set["qualification.projectStage"] = projectStage;
+    set["qualification.serviceNeeded"] = serviceNeeded;
+  }
   if (meta.seconds) set["metrics.landingSeconds"] = meta.seconds;
   if (meta.device) set["metrics.device"] = meta.device;
   // Al volver a registrarse no se pierde la atribución original si ahora llega sin UTM.
@@ -221,8 +240,13 @@ export async function findPublic(id: unknown): Promise<PublicLead> {
   return toPublic(await findDocument(id));
 }
 
-function validateQualification(body: Record<string, unknown>): ILeadQualification {
-  const fields: Array<[keyof ILeadQualification, Record<string, string>, string]> = [
+/** Lo que responde en el cuestionario; la etapa y el servicio llegan desde el registro. */
+type QualifyField = "projectType" | "budget" | "propertyStatus" | "location" | "decisionMaker";
+
+function validateQualification(
+  body: Record<string, unknown>,
+): Pick<ILeadQualification, QualifyField> {
+  const fields: Array<[QualifyField, Record<string, string>, string]> = [
     ["projectType", PROJECT_TYPES, "Elige el tipo de proyecto"],
     ["budget", BUDGETS, "Elige tu rango de presupuesto"],
     ["propertyStatus", PROPERTY_STATUSES, "Indica la situación de la propiedad"],
@@ -230,7 +254,7 @@ function validateQualification(body: Record<string, unknown>): ILeadQualificatio
     ["decisionMaker", DECISION_MAKERS, "Indica quién toma la decisión"],
   ];
 
-  const answers = {} as ILeadQualification;
+  const answers = {} as Pick<ILeadQualification, QualifyField>;
   for (const [field, options, message] of fields) {
     const value = str(body[field]);
     if (!hasOption(options, value)) throw new CustomError(message, 400);
@@ -240,7 +264,7 @@ function validateQualification(body: Record<string, unknown>): ILeadQualificatio
 }
 
 /** El método es para proyectos integrales desde $30.000 en una propiedad que no sea alquilada. */
-function isQualified(answers: ILeadQualification): boolean {
+function isQualified(answers: Pick<ILeadQualification, QualifyField>): boolean {
   return (
     QUALIFYING_BUDGETS.includes(answers.budget) &&
     answers.projectType !== "un-ambiente" &&
@@ -258,7 +282,8 @@ export async function qualify(id: unknown, body: unknown): Promise<PublicLead> {
   if (meta.seconds) lead.set("metrics.videoPageSeconds", meta.seconds);
   if (meta.device && !lead.metrics?.device) lead.set("metrics.device", meta.device);
 
-  lead.qualification = answers;
+  // Campo por campo: la etapa y el servicio vienen del registro y el cuestionario no los pisa.
+  for (const [field, value] of Object.entries(answers)) lead.set(`qualification.${field}`, value);
   lead.qualified = isQualified(answers);
   lead.qualifiedAt = new Date();
   // Quien ya pagó por la vía rápida no retrocede de etapa.

@@ -19,6 +19,9 @@ export interface ILeadUtm {
 
 export interface ILeadQualification {
   projectType: string;
+  projectStage: string;
+  /** Solo se pregunta si el proyecto está en curso; si no, queda vacío. */
+  serviceNeeded: string;
   budget: string;
   propertyStatus: string;
   location: string;
@@ -101,6 +104,8 @@ const leadSchema = new Schema<ILead>(
     },
     qualification: {
       projectType: text,
+      projectStage: text,
+      serviceNeeded: text,
       budget: text,
       propertyStatus: text,
       location: text,

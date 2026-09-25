@@ -13,10 +13,23 @@ export const START_TIMEFRAMES = {
 
 export const PROJECT_TYPES = {
   "remodelacion-integral": "Remodelación integral (varios espacios)",
-  ampliacion: "Ampliación o segundo piso",
+  ampliacion: "Ampliación / obra civil",
   "casa-antigua": "Reestructuración de una casa antigua",
   "construccion-nueva": "Construcción desde cero",
-  "un-ambiente": "Un solo ambiente puntual",
+  "un-ambiente": "Un solo ambiente puntual (cocina, baño, cuarto o patio)",
+} as const;
+
+/** Si ya arrancó la obra, se pregunta qué servicio busca. */
+export const PROJECT_STAGES = {
+  nuevo: "Proyecto nuevo",
+  "en-curso": "Proyecto en curso",
+} as const;
+
+export const SERVICES_NEEDED = {
+  "solo-diseno": "Solo el diseño",
+  asesoria: "Asesoría profesional",
+  supervision: "Supervisión del proyecto",
+  todo: "Todo lo anterior",
 } as const;
 
 export const BUDGETS = {
@@ -54,6 +67,8 @@ export const QUALIFYING_BUDGETS: readonly string[] = ["30k-60k", "60k-100k", "ma
 
 export type StartTimeframe = keyof typeof START_TIMEFRAMES;
 export type ProjectType = keyof typeof PROJECT_TYPES;
+export type ProjectStage = keyof typeof PROJECT_STAGES;
+export type ServiceNeeded = keyof typeof SERVICES_NEEDED;
 export type Budget = keyof typeof BUDGETS;
 export type PropertyStatus = keyof typeof PROPERTY_STATUSES;
 export type LeadLocation = keyof typeof LOCATIONS;

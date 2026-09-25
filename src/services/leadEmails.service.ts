@@ -3,8 +3,10 @@ import {
   BUDGETS,
   DECISION_MAKERS,
   LOCATIONS,
+  PROJECT_STAGES,
   PROJECT_TYPES,
   PROPERTY_STATUSES,
+  SERVICES_NEEDED,
   START_TIMEFRAMES,
 } from "../config/leadOptions";
 import { ILead } from "../models/lead.model";
@@ -206,6 +208,8 @@ export async function notifyTeam(lead: ILead, kind: TeamNotice): Promise<boolean
         ],
         ["Califica", qualifiedLabel(lead)],
         ["Tipo de proyecto", label(PROJECT_TYPES, q.projectType)],
+        ["Etapa del proyecto", label(PROJECT_STAGES, q.projectStage)],
+        ["Qué busca", label(SERVICES_NEEDED, q.serviceNeeded)],
         ["Presupuesto", label(BUDGETS, q.budget)],
         ["Propiedad", label(PROPERTY_STATUSES, q.propertyStatus)],
         ["Ubicación", label(LOCATIONS, q.location)],
